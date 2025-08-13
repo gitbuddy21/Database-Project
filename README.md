@@ -4,6 +4,7 @@ IT125 Database project inventory, order tracker for a nonprofit organization tha
 ## Written Explanation
 Database schema designed to support nonprofit logistics, specifically for inventory tracking, kit assembly, and outreach distribution. The goal is to reflect real-world workflows while maintaining clarity and scalability.
 
+---
 ### Design Decisions
 1. **Normalized Structure**:
    - Used junction tables like 'item_has_purchase' and 'kit_has_item' to handle many-many relationships.
@@ -15,6 +16,7 @@ Database schema designed to support nonprofit logistics, specifically for invent
 3. **Scalability**:
    - Designed modular tables to allow future expansion.
 
+---
 ### Challenges
 1. **Balancing Normalizations vs. Usability**:
    - Avoided over-complication by embedding attributes like size and condition into item names.
@@ -23,6 +25,7 @@ Database schema designed to support nonprofit logistics, specifically for invent
 5. **Realistic Sample Data**:
    - Populated tables with operationally meaningful entries.
 
+---
 ### Reasoning
 
 This schema supports nonprofits for community outreach by enabling:
