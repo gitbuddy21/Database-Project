@@ -35,4 +35,4 @@ This schema supports nonprofits for community outreach by enabling:
 - Clear distribution records for accountability.
 - INventory alerts to prevent stockouts.
 
-![EER PNG](db_project_eer.png)
+![EER PNG](eer/db_project_eer.png)
