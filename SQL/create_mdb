@@ -1,0 +1,678 @@
+-- *************************************************************
+-- This script only creates a database for inventory tracking
+-- for IT125 SQL Project
+-- This is a sample database base on the non-profit https://www.accwmaui.org
+-- All data is mock dta
+-- *********************************************************
+
+-- create the database
+DROP DATABASE IF EXISTS mdb;
+CREATE DATABASE mdb;
+
+-- select the database
+USE mdb;
+
+-- Donor table
+CREATE TABLE Donor (
+  donor_id INT PRIMARY KEY,
+  donor_firstname VARCHAR(45),
+  donor_lastname VARCHAR(45),
+  donoation_type ENUM('Food', 'clothing', 'Money'),
+  donoation_item VARCHAR(100),
+  donation_date DATETIME,
+  donor_phone VARCHAR(15),
+  donor_email VARCHAR(255)
+);
+
+-- Item table
+CREATE TABLE Item (
+  item_id INT PRIMARY KEY,
+  item_name VARCHAR(100),
+  item_category ENUM('Food', 'Hygiene', 'Clothing'),
+  item_qty INT,
+  source_type ENUM('Donated', 'Purchased', 'Assembled'),
+  item_condition ENUM('Poor', 'Fair', 'Good', 'Null'),
+  donor_id INT,
+  is_kit BOOLEAN,
+  FOREIGN KEY (donor_id) REFERENCES Donor(donor_id)
+);
+
+-- Location table
+CREATE TABLE Location (
+  location_id INT PRIMARY KEY,
+  location_name VARCHAR(45),
+  location_city ENUM('Kahului', 'Paia', 'Kihei', 'Wailuku', 'Makawao', 'Lahaina')
+);
+
+-- User table
+CREATE TABLE User (
+  user_id INT PRIMARY KEY,
+  first_name VARCHAR(45),
+  last_name VARCHAR(45),
+  user_role VARCHAR(45),
+  user_phone VARCHAR(45),
+  user_email VARCHAR(45)
+);
+
+-- Purchase table
+CREATE TABLE Purchase (
+  purchase_id INT PRIMARY KEY,
+  invoice_number VARCHAR(50),
+  purchase_date DATE,
+  purchase_total DECIMAL(10,2),
+  vendor_name VARCHAR(100)
+);
+
+-- Reorder Threshold table
+CREATE TABLE Reorder_Threshold (
+  item_id INT PRIMARY KEY,
+  min_quantity INT,
+  FOREIGN KEY (item_id) REFERENCES Item(item_id)
+);
+
+-- Order List table
+CREATE TABLE Order_List (
+  order_id INT PRIMARY KEY,
+  item_id INT,
+  quantity_needed INT,
+  order_date DATE,
+  status ENUM('Pending', 'Ordered', 'Received'),
+  FOREIGN KEY (item_id) REFERENCES Item(item_id)
+);
+
+-- Kit table
+CREATE TABLE Kit (
+  kit_id INT PRIMARY KEY,
+  kit_name VARCHAR(100)
+);
+
+-- Kit_Item table
+CREATE TABLE Kit_Item (
+  kit_id INT,
+  item_id INT,
+  quantity_per_kit INT,
+  PRIMARY KEY (kit_id, item_id),
+  FOREIGN KEY (kit_id) REFERENCES Kit(kit_id),
+  FOREIGN KEY (item_id) REFERENCES Item(item_id)
+);
+
+-- Distribution Method table
+CREATE TABLE Distribution_Method (
+  method_id INT PRIMARY KEY,
+  method_name ENUM('Mobile Van', 'Food Bank', 'Church', 'Event')
+);
+
+-- Distribution Event table
+CREATE TABLE Distribution_Event (
+  event_id INT PRIMARY KEY,
+  event_date DATE,
+  method_id INT,
+  location_id INT,
+  user_id INT,
+  FOREIGN KEY (method_id) REFERENCES Distribution_Method(method_id),
+  FOREIGN KEY (location_id) REFERENCES Location(location_id),
+  FOREIGN KEY (user_id) REFERENCES User(user_id)
+);
+
+-- Distribution Log table
+CREATE TABLE Distribution_Log (
+  log_id INT PRIMARY KEY AUTO_INCREMENT,
+  item_id INT,
+  quantity_distributed INT,
+  distribution_date DATE,
+  event_id INT,
+  FOREIGN KEY (item_id) REFERENCES Item(item_id),
+  FOREIGN KEY (event_id) REFERENCES Distribution_Event(event_id)
+);
+
+
+-- Item-Purchase junction table
+CREATE TABLE Item_Purchase (
+  item_id INT,
+  purchase_id INT,
+  PRIMARY KEY (item_id, purchase_id),
+  FOREIGN KEY (item_id) REFERENCES Item(item_id),
+  FOREIGN KEY (purchase_id) REFERENCES Purchase(purchase_id)
+);
+
+
+-- Insert rows into the tables
+
+INSERT INTO Donor (donor_id, donor_firstname, donor_lastname, donoation_type, donoation_item, donation_date, donor_phone, donor_email) VALUES
+(1, 'Leilani', 'Koa', 'Food', 'Bottled Water', '2025-01-01 10:00:00', '(808) 321-8472', 'leilani.koa@gmail.com'),
+(2, 'Kimo', 'Alika', 'Food', 'PB & J Sandwich', '2025-01-02 11:00:00', '(808) 555-1298', 'kimo.alika@yahoo.com'),
+(3, 'Nalani', 'Kekoa', 'Food', 'Granola Bar', '2025-01-03 12:00:00', '(808) 442-9831', 'nalani.kekoa@outlook.com'),
+(4, 'Malia', 'Kawika', 'Food', 'Protein Bar', '2025-01-04 13:00:00', '(808) 678-1123', 'malia.kawika@gmail.com'),
+(5, 'Nohea', 'Lani', 'Food', 'Canned Tuna', '2025-01-05 14:00:00', '(808) 234-9987', 'nohea.lani@hotmail.com'),
+(6, 'Keanu', 'Pono', 'Food', 'Canned Fruit', '2025-01-06 15:00:00', '(808) 789-4561', 'keanu.pono@gmail.com'),
+(7, 'Anela', 'Kai', 'Food', 'Trail Mix', '2025-01-07 16:00:00', '(808) 555-7734', 'anela.kai@yahoo.com'),
+(8, 'Ikaika', 'Mahelona', 'Food', 'Fruit Cup', '2025-01-08 17:00:00', '(808) 312-4455', 'ikaika.mahelona@icloud.com'),
+(9, 'Moana', 'Kalani', 'Food', 'Canned Tuna', '2025-01-09 18:00:00', '(808) 999-8821', 'moana.kalani@gmail.com'),
+(10, 'Liko', 'Manu', 'Food', 'Peanut Butter Pack', '2025-01-10 19:00:00', '(808) 456-3344', 'liko.manu@yahoo.com'),
+(11, 'Pua', 'Kealoha', 'clothing', 'Toothpaste', '2025-01-11 10:00:00', '(808) 777-1122', 'pua.kealoha@gmail.com'),
+(12, 'Hoku', 'Makana', 'clothing', 'Toothbrush', '2025-01-12 11:00:00', '(808) 888-2233', 'hoku.makana@outlook.com'),
+(13, 'Kalei', 'Nalu', 'clothing', 'Floss', '2025-01-13 12:00:00', '(808) 999-3344', 'kalei.nalu@gmail.com'),
+(14, 'Lani', 'Kaimana', 'clothing', 'Soap Bar', '2025-01-14 13:00:00', '(808) 111-4455', 'lani.kaimana@yahoo.com'),
+(15, 'Kai', 'Lehua', 'clothing', 'Cotton Swabs', '2025-01-15 14:00:00', '(808) 222-5566', 'kai.lehua@gmail.com'),
+(16, 'Nani', 'Iolana', 'clothing', 'Soap Bar', '2025-01-16 15:00:00', '(808) 333-6677', 'nani.iolana@outlook.com'),
+(17, 'Keola', 'Hana', 'clothing', 'Shampoo', '2025-01-17 16:00:00', '(808) 444-7788', 'keola.hana@gmail.com'),
+(18, 'Alana', 'Kailua', 'clothing', 'Conditioner', '2025-01-18 17:00:00', '(808) 555-8899', 'alana.kailua@yahoo.com'),
+(19, 'Makoa', 'Liko', 'clothing', 'Deodorant', '2025-01-19 18:00:00', '(808) 666-9900', 'makoa.liko@gmail.com'),
+(20, 'Halia', 'Pikake', 'clothing', 'Hand Sanitizer', '2025-01-20 19:00:00', '(808) 777-1010', 'halia.pikake@icloud.com'),
+(21, 'Kanoa', 'Ikaika', 'clothing', 'Pads', '2025-01-21 10:00:00', '(808) 888-2020', 'kanoa.ikaika@gmail.com'),
+(22, 'Loke', 'Maika', 'clothing', 'Tampons', '2025-01-22 11:00:00', '(808) 999-3030', 'loke.maika@yahoo.com'),
+(23, 'Nalu', 'Keahi', 'clothing', 'Shaving Cream', '2025-01-23 12:00:00', '(808) 111-4040', 'nalu.keahi@gmail.com'),
+(24, 'Hina', 'Pualani', 'clothing', 'Shavers', '2025-01-24 13:00:00', '(808) 222-5050', 'hina.pualani@outlook.com'),
+(25, 'Kalani', 'Mele', 'clothing', 'Mens T-Shirt S', '2025-01-25 14:00:00', '(808) 333-6060', 'kalani.mele@gmail.com'),
+(26, 'Keahi', 'Noelani', 'clothing', 'Mens T-Shirt M', '2025-01-26 15:00:00', '(808) 444-7070', 'keahi.noelani@yahoo.com'),
+(27, 'Lani', 'Koa', 'clothing', 'Mens T-Shirt L', '2025-01-27 16:00:00', '(808) 555-8080', 'lani.koa@gmail.com'),
+(28, 'Mele', 'Kimo', 'clothing', 'Mens T-Shirt XL', '2025-01-28 17:00:00', '(808) 666-9090', 'mele.kimo@outlook.com'),
+(29, 'Noelani', 'Kai', 'clothing', 'Womens T-Shirt S', '2025-01-29 18:00:00', '(808) 777-1111', 'noelani.kai@gmail.com'),
+(30, 'Koa', 'Nalani', 'clothing', 'Womens T-Shirt M', '2025-01-30 19:00:00', '(808) 888-2222', 'koa.nalani@yahoo.com'),
+(31, 'Kimo', 'Leilani', 'clothing', 'Womens T-Shirt L', '2025-01-31 10:00:00', '(808) 999-3333', 'kimo.leilani@gmail.com'),
+(32, 'Nalani', 'Malia', 'clothing', 'Womens T-Shirt XL', '2025-02-01 11:00:00', '(808) 111-4444', 'nalani.malia@outlook.com'),
+(33, 'Malia', 'Nohea', 'clothing', 'Mens Shorts S', '2025-02-02 12:00:00', '(808) 222-5555', 'malia.nohea@gmail.com'),
+(34, 'Nohea', 'Keanu', 'clothing', 'Mens Shorts M', '2025-02-03 13:00:00', '(808) 333-6666', 'nohea.keanu@yahoo.com'),
+(35, 'Keanu', 'Anela', 'clothing', 'Mens Shorts L', '2025-02-04 14:00:00', '(808) 444-7777', 'keanu.anela@gmail.com'),
+(36, 'Anela', 'Ikaika', 'clothing', 'Mens Shorts XL', '2025-02-05 15:00:00', '(808) 555-8888', 'anela.ikaika@outlook.com'),
+(37, 'Ikaika', 'Moana', 'clothing', 'Womens Shorts S', '2025-02-06 16:00:00', '(808) 666-9999', 'ikaika.moana@gmail.com'),
+(38, 'Kawika', 'Iolana', 'Food', 'Energy Bars', '2025-02-20 10:00:00', '(808) 444-5151', 'kawika.iolana@gmail.com'),
+(39, 'Liko', 'Pua', 'clothing', 'Womens Shorts L', '2025-02-08 18:00:00', '(808) 321-9393', 'liko.pua@gmail.com'),
+(40, 'Pua', 'Hoku', 'clothing', 'Womens Shorts XL', '2025-02-09 19:00:00', '(808) 654-8282', 'pua.hoku@yahoo.com'),
+(41, 'Hoku', 'Kalei', 'clothing', 'Socks S', '2025-02-10 10:00:00', '(808) 777-7171', 'hoku.kalei@outlook.com'),
+(42, 'Kalei', 'Lani', 'clothing', 'Socks M', '2025-02-11 11:00:00', '(808) 888-6060', 'kalei.lani@gmail.com'),
+(43, 'Lani', 'Kai', 'clothing', 'Socks L', '2025-02-12 12:00:00', '(808) 999-5050', 'lani.kai@yahoo.com'),
+(44, 'Kai', 'Nani', 'clothing', 'Jacket S', '2025-02-13 13:00:00', '(808) 111-4949', 'kai.nani@gmail.com'),
+(45, 'Nani', 'Keola', 'clothing', 'Jacket M', '2025-02-14 14:00:00', '(808) 222-3838', 'nani.keola@outlook.com'),
+(46, 'Keola', 'Alana', 'clothing', 'Jacket L', '2025-02-15 15:00:00', '(808) 333-2727', 'keola.alana@gmail.com'),
+(47, 'Alana', 'Koa', 'clothing', 'Jacket XL', '2025-02-16 16:00:00', '(808) 444-1616', 'alana.koa@yahoo.com'),
+(48, 'Koa', 'Malia', 'clothing', 'Hygiene Kit', '2025-02-17 17:00:00', '(808) 555-0505', 'koa.malia@gmail.com'),
+(49, 'Malia', 'Noelani', 'Food', 'Food Kit', '2025-02-18 18:00:00', '(808) 666-9494', 'malia.noelani@outlook.com'),
+(50, 'Noelani', 'Kimo', 'Food', 'Emergency Kit', '2025-02-19 19:00:00', '(808) 777-8383', 'noelani.kimo@gmail.com');
+
+INSERT INTO Item (item_id, item_name, item_category, item_qty, source_type, item_condition, donor_id, is_kit) VALUES
+(1, 'Bottled Water', 'Food', 50, 'Purchased', 'Good', 1, FALSE),
+(2, 'PB & J Sandwich', 'Food', 20, 'Donated', 'Fair', 2, FALSE),
+(3, 'Granola Bar', 'Food', 35, 'Purchased', 'Good', 3, FALSE),
+(4, 'Protein Bar', 'Food', 25, 'Donated', 'Fair', 4, FALSE),
+(5, 'Canned Tuna', 'Food', 40, 'Purchased', 'Good', 5, FALSE),
+(6, 'Canned Fruit', 'Food', 30, 'Donated', 'Fair', 6, FALSE),
+(7, 'Trail Mix', 'Food', 15, 'Donated', 'Fair', 7, FALSE),
+(8, 'Fruit Cup', 'Food', 10, 'Donated', 'Fair', 8, FALSE),
+(9, 'Canned Tuna', 'Food', 20, 'Purchased', 'Good', 9, FALSE),
+(10, 'Peanut Butter Pack', 'Food', 25, 'Donated', 'Fair', 10, FALSE),
+(11, 'Toothpaste', 'Hygiene', 30, 'Purchased', 'Good', 11, FALSE),
+(12, 'Toothbrush', 'Hygiene', 40, 'Donated', 'Fair', 12, FALSE),
+(13, 'Floss', 'Hygiene', 25, 'Donated', 'Fair', 13, FALSE),
+(14, 'Soap Bar', 'Hygiene', 50, 'Purchased', 'Good', 14, FALSE),
+(15, 'Cotton Swabs', 'Hygiene', 20, 'Donated', 'Fair', 15, FALSE),
+(16, 'Soap Bar', 'Hygiene', 30, 'Donated', 'Fair', 16, FALSE),
+(17, 'Shampoo', 'Hygiene', 35, 'Purchased', 'Good', 17, FALSE),
+(18, 'Conditioner', 'Hygiene', 25, 'Donated', 'Fair', 18, FALSE),
+(19, 'Deodorant', 'Hygiene', 40, 'Purchased', 'Good', 19, FALSE),
+(20, 'Hand Sanitizer', 'Hygiene', 15, 'Donated', 'Fair', 20, FALSE),
+(21, 'Pads', 'Hygiene', 10, 'Donated', 'Fair', 21, FALSE),
+(22, 'Tampons', 'Hygiene', 10, 'Donated', 'Fair', 22, FALSE),
+(23, 'Shaving Cream', 'Hygiene', 12, 'Donated', 'Fair', 23, FALSE),
+(24, 'Shavers', 'Hygiene', 18, 'Donated', 'Fair', 24, FALSE),
+(25, 'Mens T-Shirt S', 'Clothing', 20, 'Donated', 'Fair', 25, FALSE),
+(26, 'Mens T-Shirt M', 'Clothing', 25, 'Donated', 'Fair', 26, FALSE),
+(27, 'Mens T-Shirt L', 'Clothing', 30, 'Donated', 'Fair', 27, FALSE),
+(28, 'Mens T-Shirt XL', 'Clothing', 15, 'Donated', 'Fair', 28, FALSE),
+(29, 'Womens T-Shirt S', 'Clothing', 20, 'Donated', 'Fair', 29, FALSE),
+(30, 'Womens T-Shirt M', 'Clothing', 25, 'Donated', 'Fair', 30, FALSE),
+(31, 'Womens T-Shirt L', 'Clothing', 30, 'Donated', 'Fair', 31, FALSE),
+(32, 'Womens T-Shirt XL', 'Clothing', 15, 'Donated', 'Fair', 32, FALSE),
+(33, 'Mens Shorts S', 'Clothing', 10, 'Donated', 'Fair', 33, FALSE),
+(34, 'Mens Shorts M', 'Clothing', 12, 'Donated', 'Fair', 34, FALSE),
+(35, 'Mens Shorts L', 'Clothing', 14, 'Donated', 'Fair', 35, FALSE),
+(36, 'Mens Shorts XL', 'Clothing', 8, 'Donated', 'Fair', 36, FALSE),
+(37, 'Womens Shorts S', 'Clothing', 10, 'Donated', 'Fair', 37, FALSE),
+(38, 'Womens Shorts M', 'Clothing', 12, 'Donated', 'Fair', 38, FALSE),
+(39, 'Womens Shorts L', 'Clothing', 14, 'Donated', 'Fair', 39, FALSE),
+(40, 'Womens Shorts XL', 'Clothing', 8, 'Donated', 'Fair', 40, FALSE),
+(41, 'Socks S', 'Clothing', 20, 'Donated', 'Fair', 41, FALSE),
+(42, 'Socks M', 'Clothing', 25, 'Donated', 'Fair', 42, FALSE),
+(43, 'Socks L', 'Clothing', 30, 'Donated', 'Fair', 43, FALSE),
+(44, 'Jacket S', 'Clothing', 5, 'Donated', 'Fair', 44, FALSE),
+(45, 'Jacket M', 'Clothing', 6, 'Donated', 'Fair', 45, FALSE),
+(46, 'Jacket L', 'Clothing', 7, 'Donated', 'Fair', 46, FALSE),
+(47, 'Jacket XL', 'Clothing', 4, 'Donated', 'Fair', 47, FALSE),
+(48, 'Hygiene Kit', 'Hygiene', 10, 'Assembled', 'Good', 48, TRUE),
+(49, 'Food Kit', 'Food', 12, 'Assembled', 'Good', 49, TRUE),
+(50, 'Emergency Kit', 'Clothing', 8, 'Assembled', 'Good', 50, TRUE);
+
+INSERT INTO Location (location_id, location_name, location_city) VALUES
+(1, 'Central Pantry', 'Kahului'),
+(2, 'Eastside Hub', 'Paia'),
+(3, 'South Shore Depot', 'Kihei'),
+(4, 'Wailuku Warehouse', 'Wailuku'),
+(5, 'Makawao Mobile Unit', 'Makawao'),
+(6, 'Lahaina Outreach Center', 'Lahaina'),
+(7, 'Kahului Drop Point', 'Kahului'),
+(8, 'Paia Distribution Site', 'Paia'),
+(9, 'Kihei Community Hall', 'Kihei'),
+(10, 'Wailuku Relief Station', 'Wailuku'),
+(11, 'Makawao Kit Assembly', 'Makawao'),
+(12, 'Lahaina Food Bank', 'Lahaina'),
+(13, 'Kahului Hygiene Station', 'Kahului'),
+(14, 'Paia Clothing Center', 'Paia'),
+(15, 'Kihei Emergency Depot', 'Kihei'),
+(16, 'Wailuku Donation Hub', 'Wailuku'),
+(17, 'Makawao Resource Tent', 'Makawao'),
+(18, 'Lahaina Van Stop', 'Lahaina'),
+(19, 'Kahului Event Site', 'Kahului'),
+(20, 'Paia Kit Center', 'Paia'),
+(21, 'Kihei Mobile Van', 'Kihei'),
+(22, 'Wailuku Central Station', 'Wailuku'),
+(23, 'Makawao Relief Tent', 'Makawao'),
+(24, 'Lahaina Distribution Point', 'Lahaina'),
+(25, 'Kahului Community Center', 'Kahului'),
+(26, 'Paia Food Station', 'Paia'),
+(27, 'Kihei Outreach Tent', 'Kihei'),
+(28, 'Wailuku Kit Depot', 'Wailuku'),
+(29, 'Makawao Donation Tent', 'Makawao'),
+(30, 'Lahaina Hygiene Hub', 'Lahaina'),
+(31, 'Kahului Clothing Depot', 'Kahului'),
+(32, 'Paia Relief Center', 'Paia'),
+(33, 'Kihei Resource Hub', 'Kihei'),
+(34, 'Wailuku Mobile Stop', 'Wailuku'),
+(35, 'Makawao Community Tent', 'Makawao'),
+(36, 'Lahaina Emergency Station', 'Lahaina'),
+(37, 'Kahului Kit Assembly', 'Kahului'),
+(38, 'Paia Event Tent', 'Paia'),
+(39, 'Kihei Donation Hub', 'Kihei'),
+(40, 'Wailuku Food Depot', 'Wailuku'),
+(41, 'Makawao Van Stop', 'Makawao'),
+(42, 'Lahaina Clothing Center', 'Lahaina'),
+(43, 'Kahului Relief Tent', 'Kahului'),
+(44, 'Paia Hygiene Station', 'Paia'),
+(45, 'Kihei Kit Center', 'Kihei'),
+(46, 'Wailuku Outreach Tent', 'Wailuku'),
+(47, 'Makawao Food Bank', 'Makawao'),
+(48, 'Lahaina Community Hall', 'Lahaina'),
+(49, 'Kahului Distribution Hub', 'Kahului'),
+(50, 'Final Relief Tent', 'Makawao');
+
+INSERT INTO User (user_id, first_name, last_name, user_role, user_phone, user_email) VALUES
+(1, 'Kai', 'Lehua', 'Volunteer', '(808) 555-1001', 'kai.lehua@gmail.com'),
+(2, 'Nalani', 'Iolana', 'Coordinator', '(808) 555-1002', 'nalani.iolana@accwmaui.org'),
+(3, 'Keanu', 'Pono', 'Driver', '(808) 555-1003', 'keanu.pono@yahoo.com'),
+(4, 'Malia', 'Kawika', 'Volunteer', '(808) 555-1004', 'malia.kawika@gmail.com'),
+(5, 'Nohea', 'Lani', 'Admin', '(808) 555-1005', 'nohea.lani@outlook.com'),
+(6, 'Anela', 'Kai', 'Volunteer', '(808) 555-1006', 'anela.kai@gmail.com'),
+(7, 'Ikaika', 'Mahelona', 'Coordinator', '(808) 555-1007', 'ikaika.mahelona@accwmaui.org'),
+(8, 'Moana', 'Kalani', 'Driver', '(808) 555-1008', 'moana.kalani@yahoo.com'),
+(9, 'Liko', 'Manu', 'Volunteer', '(808) 555-1009', 'liko.manu@gmail.com'),
+(10, 'Pua', 'Kealoha', 'Manager', '(808) 555-1010', 'pua.kealoha@outlook.com'),
+(11, 'Hoku', 'Makana', 'Volunteer', '(808) 555-1011', 'hoku.makana@gmail.com'),
+(12, 'Kalei', 'Nalu', 'Coordinator', '(808) 555-1012', 'kalei.nalu@accwmaui.org'),
+(13, 'Lani', 'Kaimana', 'Driver', '(808) 555-1013', 'lani.kaimana@yahoo.com'),
+(14, 'Kai', 'Lehua', 'Volunteer', '(808) 555-1014', 'kai.lehua@gmail.com'),
+(15, 'Nani', 'Iolana', 'Admin', '(808) 555-1015', 'nani.iolana@outlook.com'),
+(16, 'Keola', 'Hana', 'Volunteer', '(808) 555-1016', 'keola.hana@gmail.com'),
+(17, 'Alana', 'Kailua', 'Coordinator', '(808) 555-1017', 'alana.kailua@accwmaui.org'),
+(18, 'Makoa', 'Liko', 'Driver', '(808) 555-1018', 'makoa.liko@yahoo.com'),
+(19, 'Halia', 'Pikake', 'Volunteer', '(808) 555-1019', 'halia.pikake@gmail.com'),
+(20, 'Kanoa', 'Ikaika', 'Manager', '(808) 555-1020', 'kanoa.ikaika@outlook.com'),
+(21, 'Loke', 'Maika', 'Volunteer', '(808) 555-1021', 'loke.maika@gmail.com'),
+(22, 'Nalu', 'Keahi', 'Coordinator', '(808) 555-1022', 'nalu.keahi@accwmaui.org'),
+(23, 'Hina', 'Pualani', 'Driver', '(808) 555-1023', 'hina.pualani@yahoo.com'),
+(24, 'Kalani', 'Mele', 'Volunteer', '(808) 555-1024', 'kalani.mele@gmail.com'),
+(25, 'Keahi', 'Noelani', 'Admin', '(808) 555-1025', 'keahi.noelani@outlook.com'),
+(26, 'Lani', 'Koa', 'Volunteer', '(808) 555-1026', 'lani.koa@gmail.com'),
+(27, 'Mele', 'Kimo', 'Coordinator', '(808) 555-1027', 'mele.kimo@accwmaui.org'),
+(28, 'Noelani', 'Kai', 'Driver', '(808) 555-1028', 'noelani.kai@yahoo.com'),
+(29, 'Koa', 'Nalani', 'Volunteer', '(808) 555-1029', 'koa.nalani@gmail.com'),
+(30, 'Kimo', 'Leilani', 'Manager', '(808) 555-1030', 'kimo.leilani@outlook.com'),
+(31, 'Nalani', 'Malia', 'Volunteer', '(808) 555-1031', 'nalani.malia@gmail.com'),
+(32, 'Malia', 'Nohea', 'Coordinator', '(808) 555-1032', 'malia.nohea@accwmaui.org'),
+(33, 'Nohea', 'Keanu', 'Driver', '(808) 555-1033', 'nohea.keanu@yahoo.com'),
+(34, 'Keanu', 'Anela', 'Volunteer', '(808) 555-1034', 'keanu.anela@gmail.com'),
+(35, 'Anela', 'Ikaika', 'Admin', '(808) 555-1035', 'anela.ikaika@outlook.com'),
+(36, 'Ikaika', 'Moana', 'Volunteer', '(808) 555-1036', 'ikaika.moana@gmail.com'),
+(37, 'Moana', 'Liko', 'Coordinator', '(808) 555-1037', 'moana.liko@accwmaui.org'),
+(38, 'Liko', 'Pua', 'Driver', '(808) 555-1038', 'liko.pua@yahoo.com'),
+(39, 'Pua', 'Hoku', 'Volunteer', '(808) 555-1039', 'pua.hoku@gmail.com'),
+(40, 'Hoku', 'Kalei', 'Manager', '(808) 555-1040', 'hoku.kalei@outlook.com'),
+(41, 'Kalei', 'Lani', 'Volunteer', '(808) 555-1041', 'kalei.lani@gmail.com'),
+(42, 'Lani', 'Kai', 'Coordinator', '(808) 555-1042', 'lani.kai@accwmaui.org'),
+(43, 'Kai', 'Nani', 'Driver', '(808) 555-1043', 'kai.nani@yahoo.com'),
+(44, 'Nani', 'Keola', 'Volunteer', '(808) 555-1044', 'nani.keola@gmail.com'),
+(45, 'Keola', 'Alana', 'Admin', '(808) 555-1045', 'keola.alana@outlook.com'),
+(46, 'Alana', 'Koa', 'Volunteer', '(808) 555-1046', 'alana.koa@gmail.com'),
+(47, 'Koa', 'Malia', 'Coordinator', '(808) 555-1047', 'koa.malia@accwmaui.org'),
+(48, 'Malia', 'Noelani', 'Driver', '(808) 555-1048', 'malia.noelani@yahoo.com'),
+(49, 'Noelani', 'Kimo', 'Volunteer', '(808) 555-1049', 'noelani.kimo@gmail.com'),
+(50, 'Kimo', 'Iolana', 'Manager', '(808) 555-1050', 'kimo.iolana@outlook.com');
+
+INSERT INTO Purchase (purchase_id, invoice_number, purchase_date, purchase_total, vendor_name) VALUES
+(1, 'INV-1001', '2025-01-01', 125.50, 'Island Supply Co.'),
+(2, 'INV-1002', '2025-01-02', 89.99, 'Maui Essentials'),
+(3, 'INV-1003', '2025-01-03', 210.75, 'Pacific Wholesale'),
+(4, 'INV-1004', '2025-01-04', 56.20, 'Hale Market'),
+(5, 'INV-1005', '2025-01-05', 312.00, 'Community Goods'),
+(6, 'INV-1006', '2025-01-06', 78.45, 'Aloha Vendors'),
+(7, 'INV-1007', '2025-01-07', 145.90, 'Maui General Supply'),
+(8, 'INV-1008', '2025-01-08', 99.99, 'Kahului Depot'),
+(9, 'INV-1009', '2025-01-09', 185.00, 'Island Essentials'),
+(10, 'INV-1010', '2025-01-10', 67.30, 'Local Aid Supply'),
+(11, 'INV-1011', '2025-01-11', 220.10, 'Makawao Market'),
+(12, 'INV-1012', '2025-01-12', 134.75, 'Paia Provisions'),
+(13, 'INV-1013', '2025-01-13', 88.00, 'Kihei Supply Co.'),
+(14, 'INV-1014', '2025-01-14', 176.40, 'Wailuku Warehouse'),
+(15, 'INV-1015', '2025-01-15', 59.99, 'Lahaina Logistics'),
+(16, 'INV-1016', '2025-01-16', 310.25, 'Relief Partners'),
+(17, 'INV-1017', '2025-01-17', 72.80, 'Maui Aid Collective'),
+(18, 'INV-1018', '2025-01-18', 198.60, 'Hale Essentials'),
+(19, 'INV-1019', '2025-01-19', 105.00, 'Island Relief Supply'),
+(20, 'INV-1020', '2025-01-20', 89.50, 'Koa Vendors'),
+(21, 'INV-1021', '2025-01-21', 245.75, 'Community First'),
+(22, 'INV-1022', '2025-01-22', 64.20, 'Maui Outreach Supply'),
+(23, 'INV-1023', '2025-01-23', 150.00, 'Kahului Essentials'),
+(24, 'INV-1024', '2025-01-24', 93.10, 'Makana Market'),
+(25, 'INV-1025', '2025-01-25', 278.90, 'Relief Depot'),
+(26, 'INV-1026', '2025-01-26', 81.45, 'Aid & Supply Co.'),
+(27, 'INV-1027', '2025-01-27', 199.99, 'Maui Logistics'),
+(28, 'INV-1028', '2025-01-28', 120.00, 'Paia Aid Partners'),
+(29, 'INV-1029', '2025-01-29', 66.75, 'Kihei Relief Supply'),
+(30, 'INV-1030', '2025-01-30', 305.20, 'Wailuku Essentials'),
+(31, 'INV-1031', '2025-01-31', 77.00, 'Lahaina Supply Co.'),
+(32, 'INV-1032', '2025-02-01', 180.50, 'Island Aid Network'),
+(33, 'INV-1033', '2025-02-02', 92.30, 'Maui Provisions'),
+(34, 'INV-1034', '2025-02-03', 210.00, 'Relief Supply Hub'),
+(35, 'INV-1035', '2025-02-04', 58.90, 'Kahului Vendors'),
+(36, 'INV-1036', '2025-02-05', 275.60, 'Makawao Aid Depot'),
+(37, 'INV-1037', '2025-02-06', 84.25, 'Paia Essentials'),
+(38, 'INV-1038', '2025-02-07', 190.40, 'Kihei Outreach Supply'),
+(39, 'INV-1039', '2025-02-08', 102.00, 'Wailuku Relief Co.'),
+(40, 'INV-1040', '2025-02-09', 95.75, 'Lahaina Aid Partners'),
+(41, 'INV-1041', '2025-02-10', 260.10, 'Island Supply Collective'),
+(42, 'INV-1042', '2025-02-11', 70.00, 'Maui Relief Network'),
+(43, 'INV-1043', '2025-02-12', 185.90, 'Community Logistics'),
+(44, 'INV-1044', '2025-02-13', 63.45, 'Aid Essentials'),
+(45, 'INV-1045', '2025-02-14', 299.99, 'Relief & Supply Co.'),
+(46, 'INV-1046', '2025-02-15', 88.20, 'Koa Aid Partners'),
+(47, 'INV-1047', '2025-02-16', 215.00, 'Maui Distribution Hub'),
+(48, 'INV-1048', '2025-02-17', 76.30, 'Paia Logistics'),
+(49, 'INV-1049', '2025-02-18', 190.00, 'Kihei Essentials'),
+(50, 'INV-1050', '2025-02-19', 110.55, 'Wailuku Aid Collective');
+
+
+INSERT INTO Reorder_Threshold (item_id, min_quantity) VALUES
+(1, 25),
+(2, 10),
+(3, 17),
+(4, 12),
+(5, 20),
+(6, 15),
+(7, 7),
+(8, 5),
+(9, 10),
+(10, 12),
+(11, 15),
+(12, 20),
+(13, 12),
+(14, 25),
+(15, 10),
+(16, 15),
+(17, 17),
+(18, 12),
+(19, 20),
+(20, 7),
+(21, 5),
+(22, 5),
+(23, 6),
+(24, 9),
+(25, 10),
+(26, 12),
+(27, 15),
+(28, 7),
+(29, 10),
+(30, 12),
+(31, 15),
+(32, 7),
+(33, 5),
+(34, 6),
+(35, 7),
+(36, 4),
+(37, 5),
+(38, 6),
+(39, 7),
+(40, 4),
+(41, 10),
+(42, 12),
+(43, 15),
+(44, 2),
+(45, 3),
+(46, 3),
+(47, 2),
+(48, 5),
+(49, 6),
+(50, 4);
+
+INSERT INTO Order_List (order_id, item_id, quantity_needed, order_date, status) VALUES
+(1, 1, 50, '2025-01-10', 'Pending'),
+(2, 2, 30, '2025-01-11', 'Ordered'),
+(3, 3, 20, '2025-01-12', 'Received'),
+(4, 4, 40, '2025-01-13', 'Pending'),
+(5, 5, 25, '2025-01-14', 'Ordered'),
+(6, 6, 35, '2025-01-15', 'Received'),
+(7, 7, 45, '2025-01-16', 'Pending'),
+(8, 8, 20, '2025-01-17', 'Ordered'),
+(9, 9, 60, '2025-01-18', 'Received'),
+(10, 10, 15, '2025-01-19', 'Pending'),
+(11, 11, 50, '2025-01-20', 'Ordered'),
+(12, 12, 30, '2025-01-21', 'Received'),
+(13, 13, 20, '2025-01-22', 'Pending'),
+(14, 14, 40, '2025-01-23', 'Ordered'),
+(15, 15, 25, '2025-01-24', 'Received'),
+(16, 16, 35, '2025-01-25', 'Pending'),
+(17, 17, 45, '2025-01-26', 'Ordered'),
+(18, 18, 20, '2025-01-27', 'Received'),
+(19, 19, 60, '2025-01-28', 'Pending'),
+(20, 20, 15, '2025-01-29', 'Ordered'),
+(21, 21, 50, '2025-01-30', 'Received'),
+(22, 22, 30, '2025-01-31', 'Pending'),
+(23, 23, 20, '2025-02-01', 'Ordered'),
+(24, 24, 40, '2025-02-02', 'Received'),
+(25, 25, 25, '2025-02-03', 'Pending'),
+(26, 26, 35, '2025-02-04', 'Ordered'),
+(27, 27, 45, '2025-02-05', 'Received'),
+(28, 28, 20, '2025-02-06', 'Pending'),
+(29, 29, 60, '2025-02-07', 'Ordered'),
+(30, 30, 15, '2025-02-08', 'Received'),
+(31, 31, 50, '2025-02-09', 'Pending'),
+(32, 32, 30, '2025-02-10', 'Ordered'),
+(33, 33, 20, '2025-02-11', 'Received'),
+(34, 34, 40, '2025-02-12', 'Pending'),
+(35, 35, 25, '2025-02-13', 'Ordered'),
+(36, 36, 35, '2025-02-14', 'Received'),
+(37, 37, 45, '2025-02-15', 'Pending'),
+(38, 38, 20, '2025-02-16', 'Ordered'),
+(39, 39, 60, '2025-02-17', 'Received'),
+(40, 40, 15, '2025-02-18', 'Pending'),
+(41, 41, 50, '2025-02-19', 'Ordered'),
+(42, 42, 30, '2025-02-20', 'Received'),
+(43, 43, 20, '2025-02-21', 'Pending'),
+(44, 44, 40, '2025-02-22', 'Ordered'),
+(45, 45, 25, '2025-02-23', 'Received'),
+(46, 46, 35, '2025-02-24', 'Pending'),
+(47, 47, 45, '2025-02-25', 'Ordered'),
+(48, 48, 20, '2025-02-26', 'Received'),
+(49, 49, 60, '2025-02-27', 'Pending'),
+(50, 50, 15, '2025-02-28', 'Ordered');
+
+INSERT INTO Kit (kit_id, kit_name) VALUES
+(1, 'Hygiene Kit'),
+(2, 'Food Kit'),
+(3, 'Emergency Kit');
+
+INSERT INTO Kit_Item (kit_id, item_id, quantity_per_kit) VALUES
+-- Hygiene Kit
+(1, 11, 1),  -- Toothpaste
+(1, 12, 1),  -- Toothbrush
+(1, 13, 1),  -- Floss
+(1, 14, 1),  -- Soap Bar
+(1, 15, 1),  -- Cotton Swabs
+(1, 16, 1),  -- Soap Bar
+(1, 17, 1),  -- Shampoo
+(1, 18, 1),  -- Conditioner
+(1, 19, 1),  -- Deodorant
+(1, 20, 1),  -- Hand Sanitizer
+(1, 21, 1),  -- Pads
+(1, 22, 1),  -- Tampons
+(1, 23, 1),  -- Shaving Cream
+(1, 24, 1),  -- Shavers
+(1, 48, 1),  -- Hygiene Kit (self-contained)
+
+-- Food Kit
+(2, 1, 2),   -- Bottled Water
+(2, 2, 1),   -- PB & J Sandwich
+(2, 3, 2),   -- Granola Bar
+(2, 4, 2),   -- Protein Bar
+(2, 5, 2),   -- Canned Tuna
+(2, 6, 2),   -- Canned Fruit
+(2, 7, 1),   -- Trail Mix
+(2, 8, 1),   -- Fruit Cup
+(2, 9, 1),   -- Canned Tuna
+(2, 10, 2),  -- Peanut Butter Pack
+(2, 49, 1),  -- Food Kit (self-contained)
+
+-- Emergency Kit
+(3, 25, 1),  -- Mens T-Shirt S
+(3, 26, 1),  -- Mens T-Shirt M
+(3, 27, 1),  -- Mens T-Shirt L
+(3, 28, 1),  -- Mens T-Shirt XL
+(3, 29, 1),  -- Womens T-Shirt S
+(3, 30, 1),  -- Womens T-Shirt M
+(3, 31, 1),  -- Womens T-Shirt L
+(3, 32, 1),  -- Womens T-Shirt XL
+(3, 33, 1),  -- Mens Shorts S
+(3, 34, 1),  -- Mens Shorts M
+(3, 35, 1),  -- Mens Shorts L
+(3, 36, 1),  -- Mens Shorts XL
+(3, 37, 1),  -- Womens Shorts S
+(3, 38, 1),  -- Womens Shorts M
+(3, 39, 1),  -- Womens Shorts L
+(3, 40, 1),  -- Womens Shorts XL
+(3, 41, 1),  -- Socks S
+(3, 42, 1),  -- Socks M
+(3, 43, 1),  -- Socks L
+(3, 44, 1),  -- Jacket S
+(3, 45, 1),  -- Jacket M
+(3, 46, 1),  -- Jacket L
+(3, 47, 1),  -- Jacket XL
+(3, 48, 1),  -- Hygiene Kit
+(3, 49, 1),  -- Food Kit
+(3, 50, 1);  -- Emergency Kit (self-contained)
+
+INSERT INTO Distribution_Method (method_id, method_name) VALUES
+(1, 'Mobile Van'),
+(2, 'Food Bank'),
+(3, 'Church'),
+(4, 'Event');
+
+INSERT INTO Distribution_Event (event_id, event_date, method_id, location_id, user_id) VALUES
+(1, '2025-01-01', 1, 1, 1),
+(2, '2025-01-02', 2, 2, 2),
+(3, '2025-01-03', 3, 3, 3),
+(4, '2025-01-04', 4, 4, 4),
+(5, '2025-01-05', 1, 5, 5),
+(6, '2025-01-06', 2, 6, 6),
+(7, '2025-01-07', 3, 7, 7),
+(8, '2025-01-08', 4, 8, 8),
+(9, '2025-01-09', 1, 9, 9),
+(10, '2025-01-10', 2, 10, 10),
+(11, '2025-01-11', 3, 11, 11),
+(12, '2025-01-12', 4, 12, 12),
+(13, '2025-01-13', 1, 13, 13),
+(14, '2025-01-14', 2, 14, 14),
+(15, '2025-01-15', 3, 15, 15),
+(16, '2025-01-16', 4, 16, 16),
+(17, '2025-01-17', 1, 17, 17),
+(18, '2025-01-18', 2, 18, 18),
+(19, '2025-01-19', 3, 19, 19),
+(20, '2025-01-20', 4, 20, 20),
+(21, '2025-01-21', 1, 21, 21),
+(22, '2025-01-22', 2, 22, 22),
+(23, '2025-01-23', 3, 23, 23),
+(24, '2025-01-24', 4, 24, 24),
+(25, '2025-01-25', 1, 25, 25),
+(26, '2025-01-26', 2, 26, 26),
+(27, '2025-01-27', 3, 27, 27),
+(28, '2025-01-28', 4, 28, 28),
+(29, '2025-01-29', 1, 29, 29),
+(30, '2025-01-30', 2, 30, 30),
+(31, '2025-01-31', 3, 31, 31),
+(32, '2025-02-01', 4, 32, 32),
+(33, '2025-02-02', 1, 33, 33),
+(34, '2025-02-03', 2, 34, 34),
+(35, '2025-02-04', 3, 35, 35),
+(36, '2025-02-05', 4, 36, 36),
+(37, '2025-02-06', 1, 37, 37),
+(38, '2025-02-07', 2, 38, 38),
+(39, '2025-02-08', 3, 39, 39),
+(40, '2025-02-09', 4, 40, 40),
+(41, '2025-02-10', 1, 41, 41),
+(42, '2025-02-11', 2, 42, 42),
+(43, '2025-02-12', 3, 43, 43),
+(44, '2025-02-13', 4, 44, 44),
+(45, '2025-02-14', 1, 45, 45),
+(46, '2025-02-15', 2, 46, 46),
+(47, '2025-02-16', 3, 47, 47),
+(48, '2025-02-17', 4, 48, 48),
+(49, '2025-02-18', 1, 49, 49),
+(50, '2025-02-19', 2, 50, 50);
+
+INSERT INTO Item_Purchase (item_id, purchase_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10),
+(11, 11),
+(12, 12),
+(13, 13),
+(14, 14),
+(15, 15),
+(16, 16),
+(17, 17),
+(18, 18),
+(19, 19),
+(20, 20),
+(21, 21),
+(22, 22),
+(23, 23),
+(24, 24),
+(25, 25),
+(26, 26),
+(27, 27),
+(28, 28),
+(29, 29),
+(30, 30),
+(31, 31),
+(32, 32),
+(33, 33),
+(34, 34),
+(35, 35),
+(36, 36),
+(37, 37),
+(38, 38),
+(39, 39),
+(40, 40),
+(41, 41),
+(42, 42),
+(43, 43),
+(44, 44),
+(45, 45),
+(46, 46),
+(47, 47),
+(48, 48),
+(49, 49),
+(50, 50);
