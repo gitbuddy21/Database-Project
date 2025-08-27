@@ -1,0 +1,90 @@
+📝 How to Use the Database
+📊 Reporting & Queries
+You can build queries to:
+- Track inventory by category or condition
+- Monitor low-stock items using Reorder_Threshold
+- View distribution history by location or method
+- Analyze donor impact and item sourcing
+
+
+➕ Add a Donor
+INSERT INTO Donor (
+  donor_id, donor_firstname, donor_lastname, donoation_type,
+  donoation_item, donation_date, donor_phone, donor_email
+)
+VALUES (
+  1, 'Jane', 'Doe', 'Food', 'Canned Beans',
+  NOW(), '808-555-1234', 'jane@example.com'
+);
+
+
+
+📦 Add an Item to Inventory
+INSERT INTO Item (
+  item_id, item_name, item_category, item_qty,
+  source_type, item_condition, donor_id, is_kit
+)
+VALUES (
+  101, 'Toothbrush', 'Hygiene', 50,
+  'Donated', 'Good', 1, FALSE
+);
+
+
+
+🛒 Log a Purchase
+INSERT INTO Purchase (
+  purchase_id, invoice_number, purchase_date,
+  purchase_total, vendor_name
+)
+VALUES (
+  201, 'INV-2025-001', '2025-08-27', 125.00, 'Maui Supply Co.'
+);
+
+
+Link the item to the purchase:
+INSERT INTO Item_Purchase (item_id, purchase_id)
+VALUES (101, 201);
+
+
+
+📉 Set Reorder Threshold
+INSERT INTO Reorder_Threshold (item_id, min_quantity)
+VALUES (101, 20);
+
+
+
+📋 Add to Order List
+INSERT INTO Order_List (
+  order_id, item_id, quantity_needed, order_date, status
+)
+VALUES (
+  301, 101, 100, CURRENT_DATE, 'Pending'
+);
+
+
+
+🎁 Assemble a Kit
+INSERT INTO Kit (kit_id, kit_name)
+VALUES (401, 'Hygiene Kit');
+
+INSERT INTO Kit_Item (kit_id, item_id, quantity_per_kit)
+VALUES (401, 101, 1); -- 1 toothbrush per kit
+
+
+
+📍 Log a Distribution Event
+INSERT INTO Distribution_Event (
+  event_id, event_date, method_id, location_id, user_id
+)
+VALUES (
+  501, '2025-08-27', 1, 2, 10
+);
+
+
+Log distributed items:
+INSERT INTO Distribution_Log (
+  item_id, quantity_distributed, distribution_date, event_id
+)
+VALUES (
+  101, 25, '2025-08-27', 501
+);
